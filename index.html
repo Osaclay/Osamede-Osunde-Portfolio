@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Osamede Osunde — UI/UX, Web Developer & App Developer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:       '#0d0f14',
+            surface:  '#13161e',
+            surface2: '#181c27',
+            border:   '#1f2535',
+            gold:     '#c9a96e',
+            'gold-d': '#8a6c3e',
+            muted:    '#4a5270',
+            silver:   '#8892aa',
+            cream:    '#e8ecf5',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'serif'],
+            body:    ['DM Sans', 'sans-serif'],
+            mono:    ['DM Mono', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: #0d0f14; }
+    body { font-family: 'DM Sans', sans-serif; background: #0d0f14; color: #c8d0e8; overflow-x: hidden; }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: #0d0f14; }
+    ::-webkit-scrollbar-thumb { background: #c9a96e; border-radius: 2px; }
+
+    /* Progress */
+    #progress-bar { position:fixed; top:0; left:0; height:2px; z-index:9999;
+      background:linear-gradient(90deg,#c9a96e,#e8ecf5); width:0%; transition:width .1s linear; }
+
+    /* Cursor */
+    #cursor { position:fixed; width:8px; height:8px; background:#c9a96e; border-radius:50%;
+      pointer-events:none; z-index:9998; transform:translate(-50%,-50%); }
+    #cursor-ring { position:fixed; width:34px; height:34px; border:1.5px solid rgba(201,169,110,.4);
+      border-radius:50%; pointer-events:none; z-index:9997; transform:translate(-50%,-50%);
+      transition:width .3s, height .3s, opacity .3s; }
+    body.hov #cursor-ring { width:54px; height:54px; opacity:.45; }
+
+    /* Navbar */
+    #navbar { position:fixed; top:0; width:100%; z-index:1000; padding:1.6rem 0;
+      transition:background .4s, box-shadow .4s, padding .4s, border-color .4s;
+      border-bottom:1px solid transparent; }
+    #navbar.scrolled { background:rgba(13,15,20,.93); backdrop-filter:blur(20px);
+      border-color:rgba(201,169,110,.1); padding:1rem 0; box-shadow:0 1px 40px rgba(0,0,0,.6); }
+
+    /* Glass */
+    .glass { background:rgba(19,22,30,.75); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.06); }
+    .glass-g { border-color:rgba(201,169,110,.15) !important; }
+
+    /* Hero */
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 70% 55% at 65% 35%, rgba(201,169,110,.08) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 15% 75%, rgba(80,100,180,.05) 0%, transparent 60%),
+        #0d0f14;
+    }
+    .grid-overlay {
+      background-image:
+        linear-gradient(rgba(201,169,110,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,169,110,.025) 1px, transparent 1px);
+      background-size: 72px 72px;
+    }
+
+    /* Shapes */
+    .shape { position:absolute; border-radius:50%; animation:float 9s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-18px) rotate(4deg)} 66%{transform:translateY(10px) rotate(-3deg)} }
+
+    /* Reveal */
+    .reveal { opacity:0; transform:translateY(30px);
+      transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1); }
+    .reveal.visible { opacity:1; transform:none; }
+    .d1{transition-delay:.1s} .d2{transition-delay:.2s} .d3{transition-delay:.3s} .d4{transition-delay:.4s}
+
+    /* Typography */
+    .hero-name { font-family:'Cormorant Garamond',serif; font-size:clamp(3.4rem,9vw,8rem);
+      font-weight:300; line-height:.95; letter-spacing:-.02em; color:#e8ecf5; }
+    .hero-name em { font-style:italic; color:#c9a96e; }
+
+    .nav-link { font-family:'DM Mono',monospace; font-size:.72rem; letter-spacing:.1em;
+      text-transform:uppercase; color:#4a5270; text-decoration:none; position:relative; transition:color .25s; }
+    .nav-link::after { content:''; position:absolute; bottom:-3px; left:0; width:0; height:1.5px;
+      background:#c9a96e; transition:width .3s; }
+    .nav-link:hover { color:#c9a96e; }
+    .nav-link:hover::after { width:100%; }
+
+    .section-label { font-family:'DM Mono',monospace; font-size:.68rem; letter-spacing:.2em;
+      text-transform:uppercase; color:#c9a96e; display:flex; align-items:center; gap:10px; }
+    .section-label::before { content:''; display:block; width:28px; height:1px; background:#c9a96e; }
+
+    /* Buttons */
+    .btn-p { background:#c9a96e; color:#0d0f14; padding:14px 32px; border-radius:100px;
+      font-family:'DM Sans',sans-serif; font-size:.875rem; letter-spacing:.03em; font-weight:600;
+      transition:background .3s, transform .2s, box-shadow .3s;
+      display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none; text-decoration:none; }
+    .btn-p:hover { background:#e2c99a; transform:translateY(-2px); box-shadow:0 12px 32px rgba(201,169,110,.3); }
+    .btn-o { background:transparent; color:#e8ecf5; padding:13px 32px; border-radius:100px;
+      font-family:'DM Sans',sans-serif; font-size:.875rem; letter-spacing:.03em; font-weight:500;
+      border:1.5px solid rgba(255,255,255,.15);
+      transition:border-color .3s, color .3s, transform .2s;
+      display:inline-flex; align-items:center; gap:8px; cursor:pointer; text-decoration:none; }
+    .btn-o:hover { border-color:#c9a96e; color:#c9a96e; transform:translateY(-2px); }
+
+    .gold-line { width:44px; height:1.5px; background:linear-gradient(90deg,#c9a96e,transparent); display:block; margin-bottom:.9rem; }
+
+    /* Cards */
+    .proj-card { transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s, border-color .4s; }
+    .proj-card:hover { transform:translateY(-7px); box-shadow:0 24px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(201,169,110,.18); }
+    .proj-card .cimg { transition:transform .6s cubic-bezier(.22,1,.36,1); }
+    .proj-card:hover .cimg { transform:scale(1.05); }
+    .proj-card .ovl { opacity:0; transition:opacity .4s; background:linear-gradient(to top, rgba(13,15,20,.9) 0%, transparent 60%); }
+    .proj-card:hover .ovl { opacity:1; }
+
+    .skill-card { transition:transform .3s, border-color .3s, box-shadow .3s; }
+    .skill-card:hover { transform:translateY(-5px); border-color:rgba(201,169,110,.28) !important;
+      box-shadow:0 16px 40px rgba(0,0,0,.4), 0 0 20px rgba(201,169,110,.05); }
+
+    .skill-tag { transition:background .25s, color .25s, transform .25s, border-color .25s; cursor:default; }
+    .skill-tag:hover { background:rgba(201,169,110,.12); color:#c9a96e; border-color:rgba(201,169,110,.28); transform:translateY(-2px); }
+
+    .tcard { transition:transform .3s, border-color .3s; }
+    .tcard:hover { transform:translateY(-4px); border-color:rgba(201,169,110,.18) !important; }
+
+    /* Form */
+    .form-input { background:rgba(19,22,30,.8); border:1.5px solid rgba(255,255,255,.08);
+      border-radius:10px; padding:14px 18px; width:100%;
+      font-family:'DM Sans',sans-serif; font-size:.9rem; color:#e8ecf5;
+      transition:border-color .3s, box-shadow .3s; outline:none; }
+    .form-input:focus { border-color:#c9a96e; box-shadow:0 0 0 4px rgba(201,169,110,.1); }
+    .form-input::placeholder { color:#4a5270; }
+    .form-input option { background:#13161e; }
+
+    /* Marquee */
+    .mtrack { display:flex; gap:3rem; animation:marquee 22s linear infinite; white-space:nowrap; }
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .mwrap { overflow:hidden; }
+
+    /* Mobile menu */
+    #mob-menu { position:fixed; inset:0; z-index:999; background:rgba(13,15,20,.97); backdrop-filter:blur(16px);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .35s; }
+    #mob-menu.open { opacity:1; pointer-events:all; }
+
+    /* Case study modal */
+    #cs-modal { position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.75); backdrop-filter:blur(10px);
+      display:flex; align-items:center; justify-content:center; padding:1.5rem;
+      opacity:0; pointer-events:none; transition:opacity .4s; }
+    #cs-modal.open { opacity:1; pointer-events:all; }
+    #cs-inner { background:#13161e; border:1px solid rgba(201,169,110,.15); border-radius:20px;
+      max-width:820px; width:100%; max-height:90vh; overflow-y:auto;
+      transform:translateY(24px); transition:transform .4s cubic-bezier(.22,1,.36,1); }
+    #cs-modal.open #cs-inner { transform:none; }
+    #cs-inner::-webkit-scrollbar { width:3px; }
+    #cs-inner::-webkit-scrollbar-thumb { background:#c9a96e; border-radius:2px; }
+
+    .stat-num { font-family:'Cormorant Garamond',serif; font-size:clamp(2.8rem,6vw,4.5rem);
+      font-weight:300; line-height:1; color:#e8ecf5; }
+
+    /* Tag pill */
+    .tag { font-family:'DM Mono',monospace; font-size:.7rem; padding:4px 12px; border-radius:100px;
+      background:rgba(201,169,110,.07); color:#c9a96e; border:1px solid rgba(201,169,110,.12); }
+    .tag-sm { font-family:'DM Mono',monospace; font-size:.68rem; padding:3px 10px; border-radius:100px;
+      background:rgba(19,22,30,.8); color:#8892aa; border:1px solid rgba(255,255,255,.07); }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- ── MOBILE MENU ── -->
+<div id="mob-menu" role="dialog" aria-modal="true">
+  <button id="mob-close" class="absolute top-7 right-7 text-silver" aria-label="Close">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <nav class="flex flex-col items-center gap-8">
+    <a href="#about"        class="mob-lnk font-display text-4xl font-light text-cream hover:text-gold transition-colors">About</a>
+    <a href="#projects"     class="mob-lnk font-display text-4xl font-light text-cream hover:text-gold transition-colors">Projects</a>
+    <a href="#skills"       class="mob-lnk font-display text-4xl font-light text-cream hover:text-gold transition-colors">Skills</a>
+    <a href="#testimonials" class="mob-lnk font-display text-4xl font-light text-cream hover:text-gold transition-colors">Testimonials</a>
+    <a href="#contact"      class="mob-lnk font-display text-4xl font-light text-cream hover:text-gold transition-colors">Contact</a>
+  </nav>
+  <p class="absolute bottom-10 font-mono text-xs text-muted tracking-widest">ARIA VOSS — PORTFOLIO 2025</p>
+</div>
+
+<!-- ── NAVBAR ── -->
+<header id="navbar" role="banner">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-3 group" aria-label="Home">
+      <div class="w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center group-hover:border-gold group-hover:bg-gold/10 transition-all duration-300">
+        <span class="font-mono text-xs text-gold">OO</span>
+      </div>
+      <span class="font-body font-medium text-sm tracking-wider text-cream uppercase">Osamede Osunde</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-8">
+      <a href="#about"        class="nav-link">About</a>
+      <a href="#projects"     class="nav-link">Projects</a>
+      <a href="#skills"       class="nav-link">Skills</a>
+      <a href="#testimonials" class="nav-link">Testimonials</a>
+      <a href="#contact"      class="btn-p text-xs py-2.5 px-6">Let's talk</a>
+    </nav>
+    <button id="hamburger" class="md:hidden flex flex-col gap-1.5 p-2" aria-label="Open menu" aria-expanded="false">
+      <span class="w-6 h-px bg-silver block"></span>
+      <span class="w-4 h-px bg-silver block"></span>
+      <span class="w-6 h-px bg-silver block"></span>
+    </button>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section id="hero" class="hero-bg relative min-h-screen flex items-center overflow-hidden">
+  <div class="grid-overlay absolute inset-0 pointer-events-none"></div>
+  <div class="shape w-80 h-80 bg-gold opacity-[.04] -top-20 right-0 pointer-events-none" style="animation-delay:0s"></div>
+  <div class="shape w-56 h-56 bg-blue-400 opacity-[.03] bottom-32 right-1/3 pointer-events-none" style="animation-delay:3s"></div>
+  <div class="shape w-36 h-36 bg-gold opacity-[.04] top-1/2 left-8 pointer-events-none" style="animation-delay:5.5s"></div>
+
+  <div class="max-w-7xl mx-auto px-6 pt-32 pb-20 w-full relative z-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <!-- Left -->
+      <div>
+        <div class="section-label mb-8 reveal">Available for projects — 2026</div>
+        <h1 class="hero-name mb-6 reveal d1">Crafting<br/><em>Designs</em><br/>Transforming Businesses</h1>
+        <p class="font-body text-lg text-silver leading-relaxed max-w-md mb-10 reveal d2">
+          UI/UX & Product Designer crafting intuitive, beautiful digital products for forward-thinking brands. From research to pixel-perfect delivery.
+        </p>
+        <div class="flex flex-wrap gap-4 mb-16 reveal d3">
+          <a href="#projects" class="btn-p">
+            View Projects
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#contact" class="btn-o">Contact Me</a>
+        </div>
+        <div class="flex gap-10 reveal d4">
+          <div>
+            <div class="stat-num" data-count="76">0</div>
+            <div class="font-mono text-xs text-muted tracking-widest mt-1">Projects</div>
+          </div>
+          <div class="w-px bg-white/5 self-stretch"></div>
+          <div>
+            <div class="stat-num" data-count="9">0</div>
+            <div class="font-mono text-xs text-muted tracking-widest mt-1">Years Experience</div>
+          </div>
+          <div class="w-px bg-white/5 self-stretch"></div>
+          <div>
+            <div class="stat-num" data-count="48">0</div>
+            <div class="font-mono text-xs text-muted tracking-widest mt-1">Clients and Partners</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="relative flex justify-center lg:justify-end reveal d2">
+        <div class="relative">
+          <div class="glass glass-g rounded-3xl overflow-hidden w-72 h-96 md:w-80 md:h-[440px]" style="box-shadow:0 0 60px rgba(201,169,110,.07),0 32px 80px rgba(0,0,0,.5);">
+            <img src="img/hero-img.jpg" alt="Osamede Osunde" class="w-full h-full object-cover opacity-90"/>
+          </div>
+          <!-- Chip 1 -->
+          <div class="glass glass-g absolute -left-12 top-12 rounded-2xl px-4 py-3 flex items-center gap-3" style="box-shadow:0 8px 30px rgba(0,0,0,.4);">
+            <div class="w-9 h-9 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
+              <svg width="17" height="17" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div>
+              <div class="font-body font-medium text-sm text-cream">UI/UX, Web Developer & App Developer</div>
+              <div class="font-mono text-xs text-muted">2017 to Present</div>
+            </div>
+          </div>
+          <!-- Chip 2 -->
+          <div class="glass glass-g absolute -right-10 bottom-16 rounded-2xl px-4 py-3" style="box-shadow:0 8px 30px rgba(0,0,0,.4);">
+            <div class="font-mono text-xs text-muted mb-1">Currently at</div>
+            <div class="font-body font-medium text-sm text-cream">Freelance & Consulting</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" style="box-shadow:0 0 6px #34d399"></div>
+              <span class="font-mono text-xs text-emerald-400">Open to work</span>
+            </div>
+          </div>
+          <div class="absolute -bottom-6 -right-6 w-32 h-32 rounded-full border border-gold/10 pointer-events-none"></div>
+          <div class="absolute -top-6 -left-6 w-20 h-20 rounded-full border border-white/5 pointer-events-none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-25">
+    <span class="font-mono text-xs tracking-widest text-silver">SCROLL</span>
+    <div class="w-px h-12 bg-silver/40 animate-pulse"></div>
+  </div>
+</section>
+
+<!-- ── MARQUEE ── -->
+<div class="border-y border-white/5 py-5 overflow-hidden bg-surface" aria-hidden="true">
+  <div class="mwrap">
+    <div class="mtrack font-mono text-xs tracking-widest uppercase text-muted">
+      <span>UI Design</span><span class="text-gold px-3">✦</span><span>UX Research</span><span class="text-gold px-3">✦</span>
+      <span>Wireframing</span><span class="text-gold px-3">✦</span><span>Prototyping</span><span class="text-gold px-3">✦</span>
+      <span>Design Systems</span><span class="text-gold px-3">✦</span><span>User Testing</span><span class="text-gold px-3">✦</span>
+      <span>Product Strategy</span><span class="text-gold px-3">✦</span><span>Interactive Design</span><span class="text-gold px-3">✦</span>
+      <span>UI Design</span><span class="text-gold px-3">✦</span><span>UX Research</span><span class="text-gold px-3">✦</span>
+      <span>Wireframing</span><span class="text-gold px-3">✦</span><span>Prototyping</span><span class="text-gold px-3">✦</span>
+      <span>Design Systems</span><span class="text-gold px-3">✦</span><span>User Testing</span><span class="text-gold px-3">✦</span>
+      <span>Product Strategy</span><span class="text-gold px-3">✦</span><span>Interaction Design</span><span class="text-gold px-3">✦</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── ABOUT ── -->
+<section id="about" class="py-28 md:py-36 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-20 items-center">
+      <!-- Images -->
+      <div class="relative reveal">
+        <div class="rounded-3xl overflow-hidden aspect-[4/5] max-w-sm" style="box-shadow:0 32px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);">
+          <img src="img/about-img.jpg" alt="Aria workspace" class="w-full h-full object-cover opacity-85"/>
+        </div>
+        <div class="absolute -bottom-8 -right-4 md:right-0 glass glass-g rounded-2xl overflow-hidden w-44 h-56 reveal d2" style="box-shadow:0 20px 60px rgba(0,0,0,.5);">
+         <!---<img src="img/hero-img.jpg" alt="Design tools" class="w-full h-full object-cover opacity-80"/>-->
+        </div>
+        <div class="absolute top-6 -right-4 md:-right-8 font-display text-8xl font-light select-none pointer-events-none" style="color:rgba(201,169,110,.04);">09<br/>YRS</div>
+      </div>
+      <!-- Content -->
+      <div>
+        <div class="section-label mb-6 reveal">About me</div>
+        <h2 class="font-display text-5xl md:text-6xl font-light leading-tight text-cream mb-6 reveal d1">
+          Creative designs,<br/><em class="italic text-gold">balancing aesthetics</em><br/> & functionality
+        </h2>
+        <p class="font-body text-silver leading-relaxed mb-6 reveal d2">
+          I'm Osamede Osunde, a Nigeria-based UI/UX and Product Designer plus software engineer with 9+ years of experience transforming complex problems into elegant digital solutions. 
+        </p>
+        <p class="font-body text-silver leading-relaxed mb-10 reveal d3">
+          I've partnered with startups, scale-ups, and big companies to design products used across various industries. My design approach blends rigorous research with bold and creative vision.
+        </p>
+        <div class="flex flex-wrap gap-3 mb-10 reveal d3">
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">2016</div><div class="font-mono text-xs text-muted">Started career</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Corel Draw</div><div class="font-mono text-xs text-muted">2016–2017</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Adobe Illustrator</div><div class="font-mono text-xs text-muted">2016–2018</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Front-end</div><div class="font-mono text-xs text-muted">2018–2019</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Back-end</div><div class="font-mono text-xs text-muted">2019–2022</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Figma</div><div class="font-mono text-xs text-muted">2023–2023</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Adobe XD</div><div class="font-mono text-xs text-muted">2023–2023</div></div>
+          <div class="glass glass-g rounded-xl px-5 py-3"><div class="font-display text-2xl font-light text-cream">Alx SE</div><div class="font-mono text-xs text-muted">2023-2025</div></div>
+        </div>
+        <div class="flex flex-wrap gap-2 reveal d4">
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Figma</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Adobe XD</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Framer</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Webflow</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">User Testing</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Design Systems</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Prototyping</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Motion Design</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">HTML</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">CSS</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">JavaScript</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Tailwind</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">React</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">API Integration</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Git</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Responsive Design</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Performance Optimization</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Authentication Systems</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Node.js</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Python</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">PHP</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Flask</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">NestJS</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Firebase Firestore</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">MySQL</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Google Cloud</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Flutterflow</span>
+          <span class="skill-tag border border-white/8 px-4 py-1.5 rounded-full font-mono text-xs text-silver">Dart</span>
+
+          
+
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROJECTS ── -->
+<section id="projects" class="py-28 md:py-36 bg-surface2">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+      <div>
+        <div class="section-label mb-6 reveal">Selected Work</div>
+        <h2 class="font-display text-5xl md:text-6xl font-light text-cream leading-tight reveal d1">Featured<br/><em class="italic text-gold">Projects</em></h2>
+      </div>
+      <p class="font-body text-silver max-w-xs leading-relaxed reveal d2">A curated selection of my most impactful design work, from research to final delivery.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Card 1 -->
+      <article class="proj-card glass glass-g rounded-3xl overflow-hidden cursor-pointer reveal" data-project="0" role="button" tabindex="0">
+        <div class="relative overflow-hidden aspect-video">
+          <img src="img/shescale design.png" alt="Finora" class="cimg w-full h-full object-cover opacity-80"/>
+          <div class="ovl absolute inset-0 flex items-end p-5"><span class="btn-p text-xs py-2 px-5 pointer-events-none">View Case Study →</span></div>
+          <div class="absolute top-4 right-4"><span class="tag-sm">Mobile App</span></div>
+        </div>
+        <div class="p-6">
+          <h3 class="font-display text-2xl font-medium text-cream mb-2">She Scale</h3>
+          <p class="font-body text-sm text-silver leading-relaxed mb-4">Empowering women entrepreneurs with mentorship, networking, and marketing strategies to scale businesses.</p>
+          <div class="flex flex-wrap gap-2"><span class="tag">UI Design</span><span class="tag">UX Research</span><span class="tag">iOS</span><span class="tag">Android</span></div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="proj-card glass glass-g rounded-3xl overflow-hidden cursor-pointer reveal d1 md:col-span-2 lg:col-span-1" data-project="1" role="button" tabindex="0">
+        <div class="relative overflow-hidden aspect-video">
+          <img src="img/Feature graphic.png" alt="Luma Health" class="cimg w-full h-full object-cover opacity-80"/>
+          <div class="ovl absolute inset-0 flex items-end p-5"><span class="btn-p text-xs py-2 px-5 pointer-events-none">View Case Study →</span></div>
+          <div class="absolute top-4 right-4"><span class="font-mono text-xs px-3 py-1 rounded-full bg-gold text-bg font-semibold">Featured</span></div>
+        </div>
+        <div class="p-6">
+          <h3 class="font-display text-2xl font-medium text-cream mb-2">Soso Quick Logistics App</h3>
+          <p class="font-body text-sm text-silver leading-relaxed mb-4">Fast delivery app connecting customers, riders, and admins for efficient logistics management.</p>
+          <div class="flex flex-wrap gap-2"><span class="tag">Web App</span><span class="tag">Design System</span><span class="tag">Healthcare</span></div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="proj-card glass glass-g rounded-3xl overflow-hidden cursor-pointer reveal d2" data-project="2" role="button" tabindex="0">
+        <div class="relative overflow-hidden aspect-video">
+          <img src="img/bingo 9ja design main.png" alt="Velo" class="cimg w-full h-full object-cover opacity-80"/>
+          <div class="ovl absolute inset-0 flex items-end p-5"><span class="btn-p text-xs py-2 px-5 pointer-events-none">View Case Study →</span></div>
+        </div>
+        <div class="p-6">
+          <h3 class="font-display text-2xl font-medium text-cream mb-2">Velo Commerce</h3>
+          <p class="font-body text-sm text-silver leading-relaxed mb-4">Streamlined checkout boosted conversion by 29% and slashed cart abandonment in 3 months.</p>
+          <div class="flex flex-wrap gap-2"><span class="tag">E-Commerce</span><span class="tag">UX Research</span></div>
+        </div>
+      </article>
+
+      <!-- Card 4 wide -->
+      <article class="proj-card glass glass-g rounded-3xl overflow-hidden cursor-pointer reveal d1 lg:col-span-2" data-project="3" role="button" tabindex="0">
+        <div class="relative overflow-hidden" style="aspect-ratio:21/9">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=80" alt="Orbit" class="cimg w-full h-full object-cover opacity-80"/>
+          <div class="ovl absolute inset-0 flex items-end p-6"><span class="btn-p text-xs py-2 px-5 pointer-events-none">View Case Study →</span></div>
+        </div>
+        <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-display text-2xl font-medium text-cream mb-1">Orbit Analytics SaaS</h3>
+            <p class="font-body text-sm text-silver">Data visualization redesign that reduced time-to-insight by 60% for enterprise teams.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 shrink-0"><span class="tag">SaaS</span><span class="tag">Data Viz</span><span class="tag">Enterprise</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ── SKILLS ── -->
+<section id="skills" class="py-28 md:py-36 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <div class="section-label mb-6 justify-center reveal">Expertise</div>
+      <h2 class="font-display text-5xl md:text-6xl font-light text-cream reveal d1">Skills & <em class="italic text-gold">Tools</em></h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal">
+        <div class="w-11 h-11 rounded-2xl bg-gold/10 flex items-center justify-center mb-5 text-gold">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">UI Design</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Pixel-perfect visual design with meticulous attention to typography, spacing, and color.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-gold rounded-full h-1" style="width:95%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Expert — 95%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal d1">
+        <div class="w-11 h-11 rounded-2xl bg-silver/10 flex items-center justify-center mb-5 text-silver">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4M18 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">UX Research</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">User interviews, usability testing, and synthesizing actionable insights from data.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-silver/50 rounded-full h-1" style="width:90%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Expert — 90%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal d2">
+        <div class="w-11 h-11 rounded-2xl bg-gold/10 flex items-center justify-center mb-5 text-gold">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">Wireframing</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Rapid lo-fi to hi-fi wireframes that align teams and validate concepts early.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-gold rounded-full h-1" style="width:92%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Expert — 92%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal d3">
+        <div class="w-11 h-11 rounded-2xl bg-silver/10 flex items-center justify-center mb-5 text-silver">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">Prototyping</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Interactive prototypes in Figma and Framer that feel production-ready for demos.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-silver/50 rounded-full h-1" style="width:88%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Advanced — 88%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal">
+        <div class="w-11 h-11 rounded-2xl bg-gold/10 flex items-center justify-center mb-5 text-gold">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">Usability Testing</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Moderated sessions to surface friction and validate decisions with real users.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-gold rounded-full h-1" style="width:85%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Advanced — 85%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal d1">
+        <div class="w-11 h-11 rounded-2xl bg-silver/10 flex items-center justify-center mb-5 text-silver">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">Design Systems</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Scalable component libraries and tokens that unify teams and speed up delivery.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-silver/50 rounded-full h-1" style="width:93%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Expert — 93%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal d2">
+        <div class="w-11 h-11 rounded-2xl bg-gold/10 flex items-center justify-center mb-5 text-gold">
+          <svg width="21" height="21" fill="currentColor" viewBox="0 0 24 24"><path d="M8 2a4 4 0 0 0 0 8h4V2H8ZM12 2v8h4a4 4 0 0 0 0-8h-4ZM8 14a4 4 0 1 0 8 0 4 4 0 0 0-8 0ZM12 10a4 4 0 0 0 0 8V10Z" opacity=".8"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">Figma</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Advanced auto-layout, variables, and collaborative workflows at enterprise scale.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-gold rounded-full h-1" style="width:97%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Expert — 97%</span>
+      </div>
+
+      <div class="skill-card glass glass-g rounded-3xl p-7 reveal d3">
+        <div class="w-11 h-11 rounded-2xl bg-silver/10 flex items-center justify-center mb-5 text-silver">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <h3 class="font-display text-xl font-medium text-cream mb-2">Adobe XD</h3>
+        <p class="font-body text-sm text-silver leading-relaxed mb-5">Responsive designs and seamless handoff specs for engineering teams.</p>
+        <div class="w-full bg-white/5 rounded-full h-1"><div class="bg-silver/50 rounded-full h-1" style="width:80%"></div></div>
+        <span class="font-mono text-xs text-muted mt-2 block">Advanced — 80%</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section id="testimonials" class="py-28 md:py-36 bg-surface2 relative overflow-hidden">
+  <div class="absolute top-0 left-1/4 w-96 h-96 rounded-full pointer-events-none" style="background:radial-gradient(circle,rgba(201,169,110,.04) 0%,transparent 70%)"></div>
+  <div class="max-w-7xl mx-auto px-6 relative">
+    <div class="text-center mb-16">
+      <div class="section-label mb-6 justify-center reveal">Client voices</div>
+      <h2 class="font-display text-5xl md:text-6xl font-light text-cream reveal d1">What clients <em class="italic text-gold">say</em></h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="tcard glass glass-g rounded-3xl p-8 reveal">
+        <div class="text-gold text-4xl font-display font-light mb-4 leading-none">"</div>
+        <p class="font-body text-silver leading-relaxed mb-8">Osamede delivered an outstanding UI/UX design that transformed our logistics app. Clean, intuitive, and customer focused. His work significantly improved user experience and operational efficiency at Soso Quick Logistics.</p>
+        <div class="flex items-center gap-4">
+          <img src="img/h-odeh.jpg" alt="Marcus Chen" class="w-12 h-12 rounded-full object-cover ring-2 ring-gold/20"/>
+          <div><div class="font-body font-medium text-cream text-sm">Hamilton Odeh</div><div class="font-mono text-xs text-muted">Founder — Soso Quick Logistics </div></div>
+        </div>
+      </div>
+      <div class="tcard rounded-3xl p-8 reveal d1" style="background:rgba(201,169,110,.07);border:1px solid rgba(201,169,110,.2);">
+        <div class="text-gold text-4xl font-display font-light mb-4 leading-none">"</div>
+        <p class="font-body text-silver leading-relaxed mb-8">Working with Osamede was an amazing experience. He is able to transform ideas into production ready designs in a short time. His designs maked our platform intuitive, engaging, and perfectly aligned with our mission to empower women entrepreneurs</p>
+        <div class="flex items-center gap-4">
+          <img src="img/angel odeh.jpg" alt="Angel Osayawe" class="w-12 h-12 rounded-full object-cover ring-2 ring-gold/40"/>
+          <div><div class="font-body font-medium text-cream text-sm">Angel Osayawe</div><div class="font-mono text-xs text-gold/60">CEO — SheScale</div></div>
+        </div>
+      </div>
+      <div class="tcard glass glass-g rounded-3xl p-8 reveal d2">
+        <div class="text-gold text-4xl font-display font-light mb-4 leading-none">"</div>
+        <p class="font-body text-silver leading-relaxed mb-8">Osamede designed a powerful and intuitive design for AfriNauta, simplifying complex maritime logistics into a seamless and highly functional digital experience.</p>
+        <div class="flex items-center gap-4">
+          <img src="img/Abdullahi Ningi.jpg" alt="Abdullahi Ningi" class="w-12 h-12 rounded-full object-cover ring-2 ring-gold/20"/>
+          <div><div class="font-body font-medium text-cream text-sm">Abdullahi Ningi</div><div class="font-mono text-xs text-muted">CEO — AfriNauta</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center mt-12 reveal">
+      <div class="flex items-center gap-3 px-6 py-3 rounded-full glass glass-g">
+        <span class="text-gold text-lg tracking-tight">★★★★★</span>
+        <span class="font-mono text-xs text-muted">5.0 avg across 28 clients</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact" class="py-28 md:py-36 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-20 items-start">
+      <div>
+        <div class="section-label mb-6 reveal">Get in touch</div>
+        <h2 class="font-display text-5xl md:text-6xl font-light text-cream leading-tight mb-6 reveal d1">
+          Let's build<br/>something<br/><em class="italic text-gold">extraordinary</em>
+        </h2>
+        <p class="font-body text-silver leading-relaxed max-w-sm mb-10 reveal d2">
+          Whether you have a project in mind or just want to talk design, I'd love to hear from you. I'm currently open to freelance and consulting work.
+        </p>
+        <div class="space-y-5 reveal d3">
+          <a href="mailto:osundejobs@gmail.com" class="flex items-center gap-4 group">
+            <div class="w-11 h-11 rounded-xl glass glass-g flex items-center justify-center group-hover:bg-gold/10 transition-colors text-gold">
+              <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <span class="font-body text-silver group-hover:text-cream transition-colors">osundejobs@gmail.com</span>
+          </a>
+          <a href="tel:+2349033535760" class="flex items-center gap-4 group">
+            <div class="w-11 h-11 rounded-xl glass glass-g flex items-center justify-center group-hover:bg-gold/10 transition-colors text-gold">
+              <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.29 6.29l1.28-.85a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <span class="font-body text-silver group-hover:text-cream transition-colors">+234 903 353 5760</span>
+          </a>
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl glass glass-g flex items-center justify-center text-gold">
+              <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <span class="font-body text-silver">Nigeria (CTA +234)</span>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-10 reveal d4">
+          <a href="#" aria-label="LinkedIn" class="w-11 h-11 glass glass-g rounded-xl flex items-center justify-center text-muted hover:text-gold transition-all"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></a>
+          <a href="#" aria-label="Dribbble" class="w-11 h-11 glass glass-g rounded-xl flex items-center justify-center text-muted hover:text-gold transition-all"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.85 7.5c.77 1.14 1.23 2.52 1.14 4.01-2.09-.44-4.07-.48-5.97-.12C12.66 13.06 12.36 12.59 12 12c2.02-1.12 4.07-2.5 5.85-2.5zm-2.36-3.4C14.41 7.22 13.22 8.3 12 9.26c-1.59-2.66-3.07-4.86-3.62-5.64 1.16-.35 2.4-.35 3.62 0zm-7.51.7c.54.76 2.01 2.93 3.6 5.57C7.52 11.63 4.5 11.94 3.04 11.99c.44-3.04 2.24-5.62 3.94-7.19zm-3.95 9.21c1.68-.04 4.98-.35 8.14-1.79.42.81.81 1.63 1.15 2.43-3.58 1.03-6.23 3.77-7.26 5.56C3.27 18.46 2 15.38 2 12c0-.67.07-1.33.19-1.97zm4.08 7.14c.99-1.71 3.52-4.29 6.86-5.29.92 2.43 1.37 4.46 1.5 5.19C13.03 21.68 12.52 22 12 22c-2.28 0-4.37-.85-5.89-2.86zm9.46-.86C17.38 19.07 16.9 17 16 14.6c1.78-.28 3.5-.17 5.14.18C20.7 17.28 19.39 18.97 17.57 20z"/></svg></a>
+          <a href="#" aria-label="Behance" class="w-11 h-11 glass glass-g rounded-xl flex items-center justify-center text-muted hover:text-gold transition-all"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M1.5 4.5h7.5a4.5 4.5 0 0 1 0 9H1.5zm0 9h9a4.5 4.5 0 0 1 0 9H1.5zM15 6.75h7.5M16.5 10.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0Z"/></svg></a>
+          <a href="#" aria-label="Twitter" class="w-11 h-11 glass glass-g rounded-xl flex items-center justify-center text-muted hover:text-gold transition-all"><svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="glass glass-g rounded-3xl p-8 md:p-10 reveal d2" style="box-shadow:0 32px 80px rgba(0,0,0,.4);">
+        <h3 class="font-display text-2xl font-medium text-cream mb-8">Send a message</h3>
+        <div class="space-y-5" id="contact-form">
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div><label class="font-mono text-xs text-muted tracking-wider block mb-2">First name</label><input type="text" class="form-input" placeholder="John"/></div>
+            <div><label class="font-mono text-xs text-muted tracking-wider block mb-2">Last name</label><input type="text" class="form-input" placeholder="Doe"/></div>
+          </div>
+          <div><label class="font-mono text-xs text-muted tracking-wider block mb-2">Email address</label><input type="email" class="form-input" placeholder="john.doe@example.com"/></div>
+          <div>
+            <label class="font-mono text-xs text-muted tracking-wider block mb-2">Project type</label>
+            <select class="form-input appearance-none cursor-pointer">
+              <option>UI/UX Design</option><option>Product Design</option><option>Design System</option>
+              <option>UX Audit</option><option>Consulting</option><option>Other</option>
+            </select>
+          </div>
+          <div><label class="font-mono text-xs text-muted tracking-wider block mb-2">Message</label><textarea class="form-input" rows="4" placeholder="Tell me about your project, timeline, and goals…"></textarea></div>
+          <button type="button" onclick="handleSubmit()" class="btn-p w-full justify-center text-sm py-4">
+            Send Message
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+          <div id="form-success" class="hidden text-center py-3 rounded-xl font-body text-sm text-emerald-400" style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);">
+            ✓ Message sent! I'll get back to you within 24 hours.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="bg-bg border-t border-white/5 py-12">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid md:grid-cols-3 gap-8 items-center border-b border-white/5 pb-10 mb-10">
+      <div>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center"><span class="font-mono text-xs text-gold">AV</span></div>
+          <span class="font-body font-medium text-cream tracking-wider text-sm uppercase">Osanede Osunde</span>
+        </div>
+        <p class="font-body text-sm text-muted leading-relaxed max-w-xs">UI/UX & Product Designer crafting intuitive digital experiences.</p>
+      </div>
+      <nav class="flex flex-col md:items-center gap-3">
+        <a href="#about"        class="font-mono text-xs text-muted hover:text-gold transition-colors tracking-widest uppercase">About</a>
+        <a href="#projects"     class="font-mono text-xs text-muted hover:text-gold transition-colors tracking-widest uppercase">Projects</a>
+        <a href="#skills"       class="font-mono text-xs text-muted hover:text-gold transition-colors tracking-widest uppercase">Skills</a>
+        <a href="#contact"      class="font-mono text-xs text-muted hover:text-gold transition-colors tracking-widest uppercase">Contact</a>
+      </nav>
+      <div class="flex md:justify-end gap-3">
+        <a href="#" aria-label="LinkedIn" class="w-10 h-10 rounded-xl border border-white/8 flex items-center justify-center text-muted hover:text-gold hover:border-gold/25 transition-all"><svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <a href="#" aria-label="Dribbble" class="w-10 h-10 rounded-xl border border-white/8 flex items-center justify-center text-muted hover:text-gold hover:border-gold/25 transition-all"><svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <a href="#" aria-label="Twitter" class="w-10 h-10 rounded-xl border border-white/8 flex items-center justify-center text-muted hover:text-gold hover:border-gold/25 transition-all"><svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      </div>
+    </div>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <p class="font-mono text-xs text-muted/40 tracking-wider">© 2026 Osanede Osunde. All rights reserved.</p>
+      <p class="font-mono text-xs text-muted/25 tracking-wider">Designed with care by codeStack Dev</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ── CASE STUDY MODAL ── -->
+<div id="cs-modal" role="dialog" aria-modal="true">
+  <div id="cs-inner">
+    <div class="sticky top-0 z-10 flex justify-between items-center px-8 py-5 border-b border-white/5" style="background:rgba(19,22,30,.96);backdrop-filter:blur(12px);">
+      <span class="font-mono text-xs text-muted tracking-widest uppercase">Case Study</span>
+      <button id="cs-close" class="w-9 h-9 rounded-xl glass glass-g flex items-center justify-center hover:bg-gold/10 transition-all text-silver" aria-label="Close">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="cs-content" class="p-8 md:p-12"></div>
+  </div>
+</div>
+
+<script>
+// ── Project data ──────────────────────────────────
+const projects = [
+  { title:'Finora Banking App', tags:['Mobile App','iOS','UI Design','UX Research'],
+    hero:'img/shescale design.png',
+    problem:'Users were abandoning the onboarding flow at 67%. Core banking features were buried under complex navigation, and the visual design felt dated and untrustworthy.',
+    research:'Conducted 18 user interviews, 2 diary studies, and competitive analysis across 12 fintech apps. Key insight: users needed to feel "safe" before trusting the app with their money.',
+    wires:'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&q=80',
+    design:'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
+    final:'img/shescale design.png',
+    results:[{m:'−38%',l:'Drop-off rate'},{m:'+52%',l:'Onboarding completion'},{m:'4.8★',l:'App Store rating'}] },
+  { title:'Luma Health Platform', tags:['Web App','Healthcare','Design System'],
+    hero:'img/feature graphic.png',
+    problem:'Patient no-show rates were at 32%. The scheduling interface required 7+ steps and was completely inaccessible on mobile with no cohesive design system.',
+    research:'25 interviews with patients and 12 with clinic staff. Journey mapping revealed friction in reminder flows, calendar UX, and confirmation states.',
+    wires:'img/soso quick app logo.png',
+    design:'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
+    final:'img/feature graphic.png',
+    results:[{m:'+52%',l:'Appointment completion'},{m:'−44%',l:'Support tickets'},{m:'280+',l:'Design components'}] },
+  { title:'Velo Commerce', tags:['E-Commerce','Web App','UX Research'],
+    hero:'img/bingo 9ja design main.png',
+    problem:'Cart abandonment was at 78%. Product discovery was broken and checkout had 9 steps with no guest option, driving users away at critical conversion moments.',
+    research:'Heatmap analysis, session recordings, 15 usability tests, and a checkout teardown across competitors. Users wanted to "browse by feel" not by category.',
+    wires:'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&q=80',
+    design:'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
+    final:'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=800&q=80',
+    results:[{m:'+29%',l:'Conversion rate'},{m:'−56%',l:'Cart abandonment'},{m:'3 steps',l:'Checkout flow'}] },
+  { title:'Orbit Analytics SaaS', tags:['SaaS','Enterprise','Data Visualization'],
+    hero:'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    problem:'Enterprise analysts spent 40+ minutes/day navigating a fragmented dashboard to surface basic insights. Built by engineers without any design input.',
+    research:'Contextual inquiry with 22 power users across 5 enterprise accounts. Discovered users had 3 core "jobs to be done" — the UI served none of them directly.',
+    wires:'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=800&q=80',
+    design:'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    final:'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+    results:[{m:'−60%',l:'Time to insight'},{m:'+41%',l:'Daily active users'},{m:'$2.4M',l:'ARR uplift attributed'}] }
+];
+
+// ── Modal ─────────────────────────────────────────
+function openModal(i) {
+  const p = projects[i];
+  document.getElementById('cs-content').innerHTML = `
+    <div class="rounded-2xl overflow-hidden aspect-video mb-8">
+      <img src="${p.hero}" alt="${p.title}" class="w-full h-full object-cover opacity-85"/>
+    </div>
+    <h2 class="font-display text-4xl font-light text-cream mb-3">${p.title}</h2>
+    <div class="flex flex-wrap gap-2 mb-10">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <div class="space-y-10">
+      <div><span class="gold-line"></span><h3 class="font-display text-2xl font-medium text-cream mb-3">01 — Problem</h3><p class="font-body text-silver leading-relaxed">${p.problem}</p></div>
+      <div><span class="gold-line"></span><h3 class="font-display text-2xl font-medium text-cream mb-3">02 — Research</h3><p class="font-body text-silver leading-relaxed">${p.research}</p></div>
+      <div><span class="gold-line"></span><h3 class="font-display text-2xl font-medium text-cream mb-4">03 — Wireframes</h3>
+        <div class="rounded-2xl overflow-hidden aspect-video"><img src="${p.wires}" alt="Wireframes" class="w-full h-full object-cover opacity-80"/></div></div>
+      <div><span class="gold-line"></span><h3 class="font-display text-2xl font-medium text-cream mb-4">04 — UI Design</h3>
+        <div class="rounded-2xl overflow-hidden aspect-video"><img src="${p.design}" alt="UI Design" class="w-full h-full object-cover opacity-80"/></div></div>
+      <div><span class="gold-line"></span><h3 class="font-display text-2xl font-medium text-cream mb-4">05 — Final Product</h3>
+        <div class="rounded-2xl overflow-hidden aspect-video"><img src="${p.final}" alt="Final Product" class="w-full h-full object-cover opacity-80"/></div></div>
+      <div><span class="gold-line"></span><h3 class="font-display text-2xl font-medium text-cream mb-6">06 — Results & Metrics</h3>
+        <div class="grid grid-cols-3 gap-4">${p.results.map(r=>`
+          <div class="glass glass-g rounded-2xl p-6 text-center">
+            <div class="font-display text-4xl font-light text-cream mb-2">${r.m}</div>
+            <div class="font-mono text-xs text-muted tracking-widest">${r.l}</div>
+          </div>`).join('')}</div></div>
+    </div>`;
+  const modal = document.getElementById('cs-modal');
+  modal.classList.add('open');
+  document.getElementById('cs-inner').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() { document.getElementById('cs-modal').classList.remove('open'); document.body.style.overflow = ''; }
+document.getElementById('cs-close').addEventListener('click', closeModal);
+document.getElementById('cs-modal').addEventListener('click', e => { if (e.target === document.getElementById('cs-modal')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.querySelectorAll('[data-project]').forEach(c => {
+  const fn = () => openModal(parseInt(c.dataset.project));
+  c.addEventListener('click', fn);
+  c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fn(); });
+});
+
+// ── Navbar + progress ─────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+  const h = document.documentElement;
+  document.getElementById('progress-bar').style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+
+// ── Custom cursor ─────────────────────────────────
+const cur = document.getElementById('cursor'), ring = document.getElementById('cursor-ring');
+let mx = -100, my = -100, rx = -100, ry = -100;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function tick() {
+  cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+  rx += (mx - rx) * .12; ry += (my - ry) * .12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(tick);
+})();
+document.querySelectorAll('a,button,[role="button"],[tabindex]').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
+});
+
+// ── Mobile menu ───────────────────────────────────
+const ham = document.getElementById('hamburger'), mob = document.getElementById('mob-menu');
+ham.addEventListener('click', () => { mob.classList.add('open'); document.body.style.overflow='hidden'; ham.setAttribute('aria-expanded','true'); });
+document.getElementById('mob-close').addEventListener('click', () => { mob.classList.remove('open'); document.body.style.overflow=''; ham.setAttribute('aria-expanded','false'); });
+document.querySelectorAll('.mob-lnk').forEach(l => l.addEventListener('click', () => { mob.classList.remove('open'); document.body.style.overflow=''; }));
+
+// ── Scroll reveal ─────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold:.12, rootMargin:'0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ── Count-up ──────────────────────────────────────
+const cntObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target, target = parseInt(el.dataset.count); let c = 0;
+      const step = target / (1600 / 16);
+      const t = setInterval(() => { c = Math.min(c + step, target); el.textContent = Math.floor(c); if (c >= target) clearInterval(t); }, 16);
+      cntObs.unobserve(el);
+    }
+  });
+}, { threshold:.5 });
+document.querySelectorAll('[data-count]').forEach(el => cntObs.observe(el));
+
+// ── Form ──────────────────────────────────────────
+function handleSubmit() {
+  const btn = document.querySelector('#contact-form button');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  setTimeout(() => { btn.style.display = 'none'; document.getElementById('form-success').classList.remove('hidden'); }, 1200);
+}
+</script>
+</body>
+</html>
+
